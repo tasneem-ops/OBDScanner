@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">OBDScanner</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="connected">Connected</string>
+    <string name="not_connected">Not Connected</string>
+    <string name="connect">Connect</string>
+    <string name="available_devices">Available Devices</string>
+    <string name="scan">Scan</string>
+    <string name="disconnect_and_scan">Disconnect and Scan</string>
+    <string name="you_are_already_connected">You are already Connected</string>
 </resources>
