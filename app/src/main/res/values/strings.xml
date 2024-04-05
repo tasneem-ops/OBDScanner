@@ -9,4 +9,6 @@
     <string name="scan">Scan</string>
     <string name="disconnect_and_scan">Disconnect and Scan</string>
     <string name="you_are_already_connected">You are already Connected</string>
+    <string name="channel_name">BLE Data Transfer</string>
+    <string name="channel_description">BLE Data Transfer</string>
 </resources>

@@ -5,15 +5,44 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.obdscanner.R
+import com.example.obdscanner.databinding.FragmentDashboardBinding
+import com.example.obdscanner.model.db.LocalDataSource
+import com.example.obdscanner.ui.viewmodel.DataViewModel
+import com.example.obdscanner.ui.viewmodel.DataViewModelFactory
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 
 class DashboardFragment : Fragment() {
+    private lateinit var binding : FragmentDashboardBinding
+    private lateinit var dataViewModel: DataViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_dashboard, container, false)
+        binding = DataBindingUtil.inflate(inflater,R.layout.fragment_dashboard, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val viewModelFactory = DataViewModelFactory(LocalDataSource.getInstance(requireContext()))
+        dataViewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(DataViewModel::class.java)
+        lifecycleScope.launch {
+            dataViewModel.singleSensorData
+                .catch {  }
+                .collectLatest {
+                    binding.sensorDataText.text = it.data.toString()
+                    binding.sensorUnitText.text = it.unit
+                    binding.sensorNameText.text = it.name
+                }
+        }
+        dataViewModel.getAllSensorReadings()
+        dataViewModel.getSensorReading(0x01)
     }
 }

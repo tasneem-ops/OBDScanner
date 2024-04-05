@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "454837521134",
+    "firebase_url": "https://obd2-ea2bf-default-rtdb.firebaseio.com",
+    "project_id": "obd2-ea2bf",
+    "storage_bucket": "obd2-ea2bf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:454837521134:android:0431678efea50e082101ff",
+        "android_client_info": {
+          "package_name": "com.example.obdscanner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD142i8oDrbQbqsg4-_vs7lsMj2c2yPimI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

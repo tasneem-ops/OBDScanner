@@ -6,10 +6,15 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.os.Handler
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.obdscanner.model.dto.BleDevice
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ScannerViewModel (private val bluetoothLeScanner : BluetoothLeScanner) : ViewModel(){
@@ -18,16 +23,16 @@ class ScannerViewModel (private val bluetoothLeScanner : BluetoothLeScanner) : V
     private val SCAN_PERIOD: Long = 10000
     private var availableDevices : ArrayList<BleDevice> = arrayListOf<BleDevice>()
 
-    private val _responseDataState = MutableStateFlow<List<BleDevice>>(emptyList())
-    val responseDataState: StateFlow<List<BleDevice>> = _responseDataState.asStateFlow()
+    private val _responseDataState = MutableLiveData<List<BleDevice>>()
+    val responseDataState: LiveData<List<BleDevice>> = _responseDataState
 
-    private val _scanningState = MutableStateFlow<Int>(NO_SCAN)
-    val scanningState: StateFlow<Int> = _scanningState.asStateFlow()
+    private val _scanningState = MutableLiveData<Int>()
+    val scanningState: LiveData<Int> = _scanningState
     @SuppressLint("MissingPermission")
     fun scanLeDevice() {
         if (!scanning) {
             // Stops scanning after a pre-defined scan period.
-            _scanningState.value = SCANNING
+            _scanningState.postValue(SCANNING)
             Log.i(TAG, "scanLeDevice: Scanning")
             availableDevices.clear()
             handler.postDelayed({
@@ -35,8 +40,8 @@ class ScannerViewModel (private val bluetoothLeScanner : BluetoothLeScanner) : V
                 bluetoothLeScanner.stopScan(leScanCallback)
                 Log.i(TAG, "scanLeDevice: Stopping")
                 Log.i(TAG, "onScanResult: $availableDevices")
-                _responseDataState.value = availableDevices
-                _scanningState.value = NO_SCAN
+                _responseDataState.postValue(availableDevices)
+                _scanningState.postValue(NO_SCAN)
             }, SCAN_PERIOD)
             scanning = true
             bluetoothLeScanner.startScan(leScanCallback)
@@ -56,7 +61,7 @@ class ScannerViewModel (private val bluetoothLeScanner : BluetoothLeScanner) : V
             }
             if(count == 0){
                 availableDevices.add(device)
-                _responseDataState.value = availableDevices
+                _responseDataState.postValue(availableDevices)
             }
         }
     }
