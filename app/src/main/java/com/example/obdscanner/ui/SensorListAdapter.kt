@@ -24,6 +24,10 @@ class SensorListAdapter() : ListAdapter<SensorReading, SensorViewHolder>(SensorD
 
     override fun onBindViewHolder(holder: SensorViewHolder, position: Int) {
         Log.i(TAG, "onBindViewHolder: ")
+        binding.nameText.text = getItem(position).name
+        binding.unitText.text = getItem(position).unit
+        Log.i(TAG, "onBindViewHolder: Name: ${getItem(position).name}")
+        Log.i(TAG, "onBindViewHolder: Unit: ${getItem(position).unit}")
     }
 }
 class SensorViewHolder(var binding : SensorItemBinding) : RecyclerView.ViewHolder(binding.root)

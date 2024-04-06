@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="4dp"
                 android:fontFamily="@font/roboto_medium"
-                android:text="@{sensor.data}"
+                android:text="@{String.valueOf(sensor.data)}"
                 android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="@+id/unitText"
                 app:layout_constraintEnd_toStartOf="@+id/unitText"

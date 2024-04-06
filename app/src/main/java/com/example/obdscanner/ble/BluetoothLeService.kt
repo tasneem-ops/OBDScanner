@@ -153,9 +153,6 @@ class BluetoothLeService : Service() {
                     localDataSource.updateConnectionStatus(ConnectionStatus(state = STATE_DISCONNECTED))
                 }
             }
-            scope.launch {
-                localDataSource.insertOrUpdate(SensorReading(0x01, "Engine Speed", "RPM", kotlin.random.Random.nextInt()))
-            }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
@@ -188,6 +185,7 @@ class BluetoothLeService : Service() {
             super.onCharacteristicWrite(gatt, characteristic, status)
             Log.i(TAG, "onCharacteristicWrite: ${characteristic?.uuid}")
             logData(this@BluetoothLeService, TAG, "onCharacteristicWrite: ${characteristic?.uuid}")
+            completedCommand()
         }
 
         @SuppressLint("MissingPermission")
@@ -199,13 +197,9 @@ class BluetoothLeService : Service() {
             super.onDescriptorWrite(gatt, descriptor, status)
             Log.i(TAG, "onDescriptorWrite: ${descriptor?.characteristic?.uuid}")
             logData(this@BluetoothLeService, TAG, "onDescriptorWrite: ${descriptor?.characteristic?.uuid}")
-            val service = gatt?.getService(UUID.fromString("0000FFF0-0000-1000-8000-00805F9B34FB"))
-            val char = service?.getCharacteristic(UUID.fromString("0000FFF2-0000-1000-8000-00805F9B34FB"))
-            if (char != null) {
-                Log.i(TAG, "onDescriptorWrite: Found Characteristic ${char.uuid}")
-                logData(this@BluetoothLeService, TAG, "onDescriptorWrite: Found Characteristic ${char.uuid}")
-                char.value = byteArrayOf(0x01, 0x0C)
-                gatt.writeCharacteristic(char)
+            //Start Sending AT Commands
+            for (pid in DecodingUtils.getSensors().keys){
+                writeATCommand(pid)
             }
         }
 
@@ -216,14 +210,17 @@ class BluetoothLeService : Service() {
             super.onCharacteristicChanged(gatt, characteristic)
             Log.i(TAG, "onCharacteristicChanged: Finallly Got the value!!!!  ${characteristic?.uuid}      ${characteristic?.value?.decodeToString()} ${String(characteristic?.value ?: byteArrayOf() , Charsets.UTF_8)}")
             logData(this@BluetoothLeService, TAG, "onCharacteristicChanged: Finallly Got the value!!!!  ${characteristic?.uuid}")
-            val firstByte = characteristic?.value?.get(0)?.toInt()
-            val secondByte = characteristic?.value?.get(0)?.toInt()
+            val pid = characteristic?.value?.get(1)
+            val firstByte = characteristic?.value?.get(3)
+            val secondByte = characteristic?.value?.get(4)
             if(firstByte != null && secondByte != null){
-                var value = ((256*firstByte) + secondByte) /4
-                sendDataNotification(this@BluetoothLeService, "${value}")
-                logData(this@BluetoothLeService, TAG, "Data From OBD2: $value")
+                sendDataNotification(this@BluetoothLeService, "${characteristic.value}")
+                logData(this@BluetoothLeService, TAG, "Data From OBD2: ${characteristic.value}")
                 scope.launch {
-                    localDataSource.insertOrUpdate(SensorReading(0x01, "Engine Speed", "RPM", 100))
+                    val sensorReading = DecodingUtils.decodePidData(pid, firstByte, secondByte)
+                    if (sensorReading  != null){
+                        localDataSource.insertOrUpdate(sensorReading)
+                    }
                 }
             }
             else{
@@ -258,6 +255,98 @@ class BluetoothLeService : Service() {
         } ?: run {
             Log.w(TAG, "BluetoothGatt not initialized")
         }
+    }
+    @SuppressLint("MissingPermission")
+    fun writeATCommand(pid : Byte): Boolean {
+        if(bluetoothGatt == null){
+            return false
+        }
+        else{
+            val service = bluetoothGatt?.getService(UUID.fromString("0000FFF0-0000-1000-8000-00805F9B34FB"))
+            val characteristic = service?.getCharacteristic(UUID.fromString("0000FFF2-0000-1000-8000-00805F9B34FB"))
+            if (characteristic != null) {
+                Log.i(TAG, "Writing to Characteristic ${characteristic.uuid} with pid: ${pid}")
+                logData(this@BluetoothLeService, TAG, "Writing to Characteristic: ${characteristic.uuid} with pid: ${pid}")
+
+                // Check if this characteristic actually has READ property
+                if (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_READ == 0) {
+                    Log.e(TAG, "ERROR: Characteristic cannot be read")
+                    return false
+                }
+                // Enqueue the read command now that all checks have been passed
+                val result = commandQueue!!.add(Runnable {
+                    characteristic.value = byteArrayOf(0x01, pid)
+
+                    if (!bluetoothGatt?.writeCharacteristic(characteristic)!!) {
+                        Log.e(
+                            TAG,
+                            String.format(
+                                "ERROR: readCharacteristic failed for characteristic: %s",
+                                characteristic.uuid
+                            )
+                        )
+                        completedCommand()
+                    } else {
+                        Log.d(TAG, String.format("reading characteristic <%s>", characteristic.uuid))
+                        nrTries++
+                    }
+                })
+                if (result) {
+                    nextCommand()
+                } else {
+                    Log.e(TAG, "ERROR: Could not enqueue read characteristic command")
+                }
+                return result
+            }
+            else{
+                return false
+            }
+        }
+    }
+    private fun nextCommand() {
+        // If there is still a command being executed then bail out
+        if (commandQueueBusy) {
+            return
+        }
+
+        // Check if we still have a valid gatt object
+        if (bluetoothGatt == null) {
+            Log.e(
+                TAG,
+                java.lang.String.format(
+                    "ERROR: GATT is 'null' for peripheral, clearing command queue"
+                )
+            )
+            commandQueue!!.clear()
+            commandQueueBusy = false
+            return
+        }
+
+        // Execute the next command in the queue
+        if (commandQueue!!.size > 0) {
+            val bluetoothCommand = commandQueue.peek()
+            commandQueueBusy = true
+            nrTries = 0
+            mainHandler.post(Runnable {
+                try {
+                    bluetoothCommand.run()
+                } catch (ex: java.lang.Exception) {
+                    Log.e(
+                        TAG,
+                        java.lang.String.format(
+                            "ERROR: Command exception for device"
+                        ),
+                        ex
+                    )
+                }
+            })
+        }
+    }
+    private fun completedCommand() {
+        commandQueueBusy = false
+//        isRetrying = false
+        commandQueue!!.poll()
+        nextCommand()
     }
     companion object{
         private const val TAG = "BluetoothLeService"

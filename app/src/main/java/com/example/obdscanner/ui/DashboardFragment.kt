@@ -1,6 +1,7 @@
 package com.example.obdscanner.ui
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,9 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.obdscanner.Constants.STATE_CONNECTED
+import com.example.obdscanner.Constants.STATE_CONNECTING
+import com.example.obdscanner.Constants.STATE_DISCONNECTED
 import com.example.obdscanner.R
 import com.example.obdscanner.databinding.FragmentDashboardBinding
 import com.example.obdscanner.model.db.LocalDataSource
@@ -37,9 +41,15 @@ class DashboardFragment : Fragment() {
             dataViewModel.singleSensorData
                 .catch {  }
                 .collectLatest {
-                    binding.sensorDataText.text = it.data.toString()
-                    binding.sensorUnitText.text = it.unit
-                    binding.sensorNameText.text = it.name
+                    if(it == null){
+                        Log.i("TAG", "onViewCreated: Null !!!!")
+                    }
+                    else{
+                        binding.sensorDataText.text = it.data.toString()
+                        binding.sensorUnitText.text = it.unit
+                        binding.sensorNameText.text = it.name
+                    }
+
                 }
         }
         dataViewModel.getAllSensorReadings()

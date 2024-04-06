@@ -9,5 +9,5 @@ data class SensorReading(
     val pid : Byte,
     val name : String,
     val unit : String,
-    var data : Int
+    var data : Double
 )
