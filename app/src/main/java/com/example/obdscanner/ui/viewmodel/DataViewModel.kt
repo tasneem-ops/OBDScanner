@@ -20,7 +20,7 @@ class DataViewModel(private val localDataSource: LocalDataSource) : ViewModel() 
     private val _connectionStatus = MutableStateFlow<ConnectionStatus>(ConnectionStatus(1, STATE_DISCONNECTED))
     val connectionStatus: StateFlow<ConnectionStatus> = _connectionStatus.asStateFlow()
 
-    private val _singleSensorData = MutableStateFlow<SensorReading>(SensorReading(0x01, "Engine Speed", "RPM", 0.0))
+    private val _singleSensorData = MutableStateFlow<SensorReading>(SensorReading(0x01, "Engine Speed", "rpm", 50.0))
     val singleSensorData: StateFlow<SensorReading> = _singleSensorData.asStateFlow()
     init {
         initDB()

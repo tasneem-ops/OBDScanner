@@ -51,6 +51,33 @@ class DashboardFragment : Fragment() {
                     }
 
                 }
+
+            dataViewModel.respnseDataState
+                .collectLatest { list ->
+                    list.forEach {
+                        when(it.pid){
+                            0x0C.toByte() ->{
+                                binding.sensorDataText.text = it.data.toString()
+                                binding.sensorUnitText.text = it.unit
+                                binding.sensorNameText.text = it.name
+                                binding.progressBar.progress = ((it.data) /16383 *100).toInt()
+                            }
+                            0x0D.toByte() ->{
+                                binding.carSpeedSensorDataText.text = it.data.toString()
+                                binding.carSpeedSensorUnitText.text = it.unit
+                                binding.carSpeedSensorNameText.text = it.name
+                                binding.speedProgressBar.progress = ((it.data) /255 *100).toInt()
+                            }
+                            0x05.toByte() ->{
+                                binding.tempSensorDataText.text = it.data.toString()
+                                binding.tempSensorUnitText.text = it.unit
+                                binding.tempSensorNameText.text = it.name
+                                binding.tempProgressBar.progress = ((it.data + 40) /255 *100).toInt()
+                            }
+                            else ->{}
+                        }
+                    }
+                }
         }
         dataViewModel.getAllSensorReadings()
         dataViewModel.getSensorReading(0x01)

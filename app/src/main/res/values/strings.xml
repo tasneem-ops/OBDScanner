@@ -12,4 +12,5 @@
     <string name="channel_name">BLE Data Transfer</string>
     <string name="channel_description">BLE Data Transfer</string>
     <string name="all_sensors">All Sensors</string>
+    <string name="engine_coolant_temperature">Engine coolant temperature</string>
 </resources>

@@ -52,7 +52,7 @@
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.example.obdscanner.ui.SettingsFragment"
+        android:name="com.example.obdscanner.ui.LiveDataFragment"
         android:label="fragment_settings"
-        tools:layout="@layout/fragment_settings" />
+        tools:layout="@layout/fragment_livedata" />
 </navigation>
