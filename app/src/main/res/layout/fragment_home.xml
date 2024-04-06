@@ -186,7 +186,7 @@
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/settings_card"
+                android:id="@+id/livedata_card"
                 android:layout_width="170dp"
                 android:layout_height="200dp"
                 android:layout_row="1"
@@ -202,7 +202,7 @@
                     android:layout_height="100dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="24dp"
-                    android:src="@drawable/settings" />
+                    android:src="@drawable/line_chart" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -210,7 +210,7 @@
                     android:layout_gravity="center_horizontal|bottom"
                     android:layout_marginBottom="16dp"
                     android:fontFamily="@font/roboto_medium"
-                    android:text="Settings"
+                    android:text="Live Data"
                     android:textSize="16sp" />
             </androidx.cardview.widget.CardView>
         </GridLayout>

@@ -43,7 +43,7 @@ class HomeFragment : Fragment() {
             val action = HomeFragmentDirections.actionHomeFragmentToAllSensorsFragment()
             Navigation.findNavController(it).navigate(action)
         }
-        binding.settingsCard.setOnClickListener {
+        binding.livedataCard.setOnClickListener {
             val action = HomeFragmentDirections.actionHomeFragmentToSettingsFragment()
             Navigation.findNavController(it).navigate(action)
         }
